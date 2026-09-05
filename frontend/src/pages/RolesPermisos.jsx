@@ -1,22 +1,20 @@
 import { useEffect, useState } from 'react';
 import {
-  crearPelicula,
-  listarPeliculas,
-} from '../services/peliculasApi';
+  listarRoles,
+  listarPermisos,
+  crearRol,
+} from '../services/rolesApi';
 
 import './Peliculas.css';
 
 const formularioInicial = {
-  titulo: '',
-  sinopsis: '',
-  genero: '',
-  duracion: '',
-  clasificacion: '',
-  activo: true,
+  name: '',
+  permissions: [],
 };
 
-export default function Peliculas({ cambiarPagina }) {
-  const [peliculas, setPeliculas] = useState([]);
+export default function RolesPermisos({ cambiarPagina }) {
+  const [roles, setRoles] = useState([]);
+  const [permisos, setPermisos] = useState([]);
   const [form, setForm] = useState(formularioInicial);
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
@@ -28,8 +26,10 @@ export default function Peliculas({ cambiarPagina }) {
       setCargando(true);
       setErrorGeneral('');
 
-      const datos = await listarPeliculas();
-      setPeliculas(datos);
+      const datosRoles = await listarRoles();
+      const datosPermisos = await listarPermisos();
+      setRoles(datosRoles);
+      setPermisos(datosPermisos);
     } catch (error) {
       setErrorGeneral(error.message);
     } finally {
@@ -43,11 +43,21 @@ export default function Peliculas({ cambiarPagina }) {
 
   function cambiarCampo(e) {
     const { name, value, type, checked } = e.target;
-
-    setForm((anterior) => ({
-      ...anterior,
-      [name]: type === 'checkbox' ? checked : value,
-    }));
+    
+    if (name === 'permissions') {
+      const permisoId = value;
+      setForm((anterior) => {
+        const nuevosPermisos = checked
+          ? [...anterior.permissions, permisoId]
+          : anterior.permissions.filter((p) => p !== permisoId);
+        return { ...anterior, permissions: nuevosPermisos };
+      });
+    } else {
+      setForm((anterior) => ({
+        ...anterior,
+        [name]: type === 'checkbox' ? checked : value,
+      }));
+    }
   }
 
   async function guardar(e) {
@@ -58,10 +68,7 @@ export default function Peliculas({ cambiarPagina }) {
     setErrores({});
 
     try {
-      await crearPelicula({
-        ...form,
-        duracion: Number(form.duracion),
-      });
+      await crearRol(form);
 
       setForm(formularioInicial);
       await cargar();
@@ -72,10 +79,6 @@ export default function Peliculas({ cambiarPagina }) {
       setGuardando(false);
     }
   }
-
-  const activas = peliculas.filter(
-    (pelicula) => pelicula.activo
-  ).length;
 
   return (
     <div className="app">
@@ -96,7 +99,7 @@ export default function Peliculas({ cambiarPagina }) {
           </p>
 
           <nav>
-            <button className="nav-item active" onClick={() => cambiarPagina?.('peliculas')}>
+            <button className="nav-item" onClick={() => cambiarPagina?.('peliculas')}>
               <svg
                 viewBox="0 0 24 24"
                 aria-hidden="true"
@@ -108,13 +111,9 @@ export default function Peliculas({ cambiarPagina }) {
               </svg>
 
               Películas
-
-              <span className="nav-count">
-                {peliculas.length}
-              </span>
             </button>
 
-            <button className="nav-item" onClick={() => cambiarPagina?.('roles')}>
+            <button className="nav-item active" onClick={() => cambiarPagina?.('roles')}>
               <svg
                 viewBox="0 0 24 24"
                 aria-hidden="true"
@@ -123,6 +122,10 @@ export default function Peliculas({ cambiarPagina }) {
               </svg>
 
               Roles y permisos
+
+              <span className="nav-count">
+                {roles.length}
+              </span>
             </button>
 
             <div className="nav-item muted">
@@ -157,76 +160,67 @@ export default function Peliculas({ cambiarPagina }) {
             <div className="breadcrumb">
               CineNow
               <span>/</span>
-              Películas
+              Roles y Permisos
             </div>
 
-            <h1>Películas</h1>
+            <h1>Roles y Permisos</h1>
 
             <p>
-              Gestiona el catálogo registrado en la
-              base de datos.
+              Gestiona el control de acceso de los usuarios del sistema.
             </p>
           </div>
 
           <div className="stack">
             <span>React</span>
             <span>Laravel</span>
-            <span>MySQL</span>
+            <span>Spatie</span>
           </div>
         </header>
 
         <section className="stats">
           <article className="stat-card">
             <div className="stat-header">
-              <span>Total de películas</span>
+              <span>Total de roles</span>
 
               <div className="stat-icon">
                 <svg viewBox="0 0 24 24">
-                  <rect
-                    x="4"
-                    y="5"
-                    width="16"
-                    height="14"
-                    rx="2"
-                  />
-                  <path d="M8 5v14M16 5v14M4 9h4M16 9h4M4 15h4M16 15h4" />
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                 </svg>
               </div>
             </div>
 
-            <strong>{peliculas.length}</strong>
+            <strong>{roles.length}</strong>
 
             <small>
-              Registros almacenados
+              Registrados en sistema
             </small>
           </article>
 
           <article className="stat-card">
             <div className="stat-header">
-              <span>Películas activas</span>
+              <span>Total de permisos</span>
 
               <div className="stat-icon green">
                 <svg viewBox="0 0 24 24">
-                  <path d="m7 12 3 3 7-7" />
-                  <circle
-                    cx="12"
-                    cy="12"
-                    r="9"
-                  />
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                 </svg>
               </div>
             </div>
 
-            <strong>{activas}</strong>
+            <strong>{permisos.length}</strong>
 
             <small>
-              Disponibles actualmente
+              Disponibles para asignar
             </small>
           </article>
 
           <article className="stat-card">
             <div className="stat-header">
-              <span>Estado API</span>
+              <span>Estado API Roles</span>
 
               <div className="stat-icon green">
                 <svg viewBox="0 0 24 24">
@@ -245,7 +239,7 @@ export default function Peliculas({ cambiarPagina }) {
             </strong>
 
             <small>
-              /api/peliculas
+              /api/roles
             </small>
           </article>
         </section>
@@ -258,7 +252,7 @@ export default function Peliculas({ cambiarPagina }) {
                   NUEVO REGISTRO
                 </span>
 
-                <h2>Agregar película</h2>
+                <h2>Crear Rol</h2>
               </div>
 
               <span className="panel-id">
@@ -267,8 +261,7 @@ export default function Peliculas({ cambiarPagina }) {
             </div>
 
             <p className="panel-description">
-              Los datos serán validados por Laravel
-              antes de almacenarse en MySQL.
+              Asigna un nombre al rol y selecciona los permisos que tendrá disponibles.
             </p>
 
             {errorGeneral && (
@@ -294,118 +287,55 @@ export default function Peliculas({ cambiarPagina }) {
               onSubmit={guardar}
             >
               <div className="field">
-                <label>Título</label>
+                <label>Nombre del Rol</label>
 
                 <input
-                  name="titulo"
-                  value={form.titulo}
+                  name="name"
+                  value={form.name}
                   onChange={cambiarCampo}
-                  placeholder="Ej. Interstellar"
+                  placeholder="Ej. Moderador"
                 />
 
-                {errores.titulo && (
+                {errores.name && (
                   <small>
-                    {errores.titulo[0]}
+                    {errores.name[0]}
                   </small>
                 )}
               </div>
 
-              <div className="field">
-                <label>Sinopsis</label>
-
-                <textarea
-                  name="sinopsis"
-                  value={form.sinopsis}
-                  onChange={cambiarCampo}
-                  placeholder="Breve descripción de la película..."
-                />
-              </div>
-
-              <div className="field-grid">
-                <div className="field">
-                  <label>Género</label>
-
-                  <input
-                    name="genero"
-                    value={form.genero}
-                    onChange={cambiarCampo}
-                    placeholder="Acción"
-                  />
-
-                  {errores.genero && (
-                    <small>
-                      {errores.genero[0]}
-                    </small>
-                  )}
+              <div className="field" style={{ marginTop: '20px' }}>
+                <label>Permisos Asignados</label>
+                <div className="permissions-grid" style={{ display: 'grid', gap: '10px', marginTop: '10px' }}>
+                  {permisos.map((permiso) => (
+                    <label key={permiso.id} className="switch-field" style={{ padding: '10px', background: 'var(--surface-color)', borderRadius: '8px' }}>
+                      <div>
+                        <strong>{permiso.name}</strong>
+                      </div>
+                      <input
+                        type="checkbox"
+                        name="permissions"
+                        value={permiso.name}
+                        checked={form.permissions.includes(permiso.name)}
+                        onChange={cambiarCampo}
+                      />
+                      <span className="switch">
+                        <i></i>
+                      </span>
+                    </label>
+                  ))}
                 </div>
-
-                <div className="field">
-                  <label>Duración</label>
-
-                  <div className="duration">
-                    <input
-                      type="number"
-                      name="duracion"
-                      value={form.duracion}
-                      onChange={cambiarCampo}
-                      placeholder="120"
-                    />
-
-                    <span>min</span>
-                  </div>
-
-                  {errores.duracion && (
-                    <small>
-                      {errores.duracion[0]}
-                    </small>
-                  )}
-                </div>
-              </div>
-
-              <div className="field">
-                <label>Clasificación</label>
-
-                <input
-                  name="clasificacion"
-                  value={form.clasificacion}
-                  onChange={cambiarCampo}
-                  placeholder="PG-13"
-                />
-
-                {errores.clasificacion && (
+                {errores.permissions && (
                   <small>
-                    {errores.clasificacion[0]}
+                    {errores.permissions[0]}
                   </small>
                 )}
               </div>
-
-              <label className="switch-field">
-                <div>
-                  <strong>
-                    Película activa
-                  </strong>
-
-                  <span>
-                    Disponible en el catálogo
-                  </span>
-                </div>
-
-                <input
-                  type="checkbox"
-                  name="activo"
-                  checked={form.activo}
-                  onChange={cambiarCampo}
-                />
-
-                <span className="switch">
-                  <i></i>
-                </span>
-              </label>
 
               <button
                 className="submit"
                 type="submit"
                 disabled={guardando}
+                style={{ marginTop: '30px' }}
               >
                 {guardando ? (
                   <>
@@ -414,7 +344,7 @@ export default function Peliculas({ cambiarPagina }) {
                   </>
                 ) : (
                   <>
-                    Registrar película
+                    Registrar rol
                     <span>→</span>
                   </>
                 )}
@@ -429,7 +359,7 @@ export default function Peliculas({ cambiarPagina }) {
                   BASE DE DATOS
                 </span>
 
-                <h2>Catálogo</h2>
+                <h2>Listado de Roles</h2>
               </div>
 
               <span className="panel-id">
@@ -440,11 +370,11 @@ export default function Peliculas({ cambiarPagina }) {
             <div className="catalog-toolbar">
               <p>
                 Información recibida desde
-                <code> GET /api/peliculas</code>
+                <code> GET /api/roles</code>
               </p>
 
               <span>
-                {peliculas.length}
+                {roles.length}
                 {' '}
                 registros
               </span>
@@ -455,100 +385,56 @@ export default function Peliculas({ cambiarPagina }) {
                 <span className="loader"></span>
 
                 <strong>
-                  Cargando películas
+                  Cargando roles
                 </strong>
 
                 <p>
                   Consultando Laravel...
                 </p>
               </div>
-            ) : peliculas.length === 0 ? (
+            ) : roles.length === 0 ? (
               <div className="state">
                 <strong>
                   Sin registros
                 </strong>
 
                 <p>
-                  Agrega una película desde
+                  Agrega un rol desde
                   el formulario.
                 </p>
               </div>
             ) : (
               <div className="movie-list">
-                {peliculas.map((pelicula) => (
+                {roles.map((rol) => (
                   <article
                     className="movie"
-                    key={pelicula.id}
+                    key={rol.id}
                   >
                     <div className="movie-number">
                       {String(
-                        pelicula.id
+                        rol.id
                       ).padStart(2, '0')}
                     </div>
 
                     <div className="movie-body">
                       <div className="movie-top">
                         <div>
-                          <span className="genre">
-                            {pelicula.genero}
-                          </span>
-
                           <h3>
-                            {pelicula.titulo}
+                            {rol.name}
                           </h3>
                         </div>
 
-                        <span
-                          className={
-                            pelicula.activo
-                              ? 'status active'
-                              : 'status'
-                          }
-                        >
+                        <span className="status active">
                           <i></i>
-
-                          {pelicula.activo
-                            ? 'Activa'
-                            : 'Inactiva'}
+                          Activo
                         </span>
                       </div>
 
-                      <p className="synopsis">
-                        {pelicula.sinopsis ||
-                          'Sin sinopsis registrada.'}
+                      <p className="synopsis" style={{ marginTop: '15px' }}>
+                        <strong>Permisos ({rol.permissions?.length || 0}):</strong><br/>
+                        {rol.permissions?.map(p => p.name).join(', ') || 'Sin permisos asignados.'}
                       </p>
 
-                      <div className="metadata">
-                        <div>
-                          <span>Duración</span>
-
-                          <strong>
-                            {pelicula.duracion}
-                            {' '}
-                            min
-                          </strong>
-                        </div>
-
-                        <div>
-                          <span>
-                            Clasificación
-                          </span>
-
-                          <strong>
-                            {
-                              pelicula.clasificacion
-                            }
-                          </strong>
-                        </div>
-
-                        <div>
-                          <span>ID</span>
-
-                          <strong>
-                            #{pelicula.id}
-                          </strong>
-                        </div>
-                      </div>
                     </div>
                   </article>
                 ))}
