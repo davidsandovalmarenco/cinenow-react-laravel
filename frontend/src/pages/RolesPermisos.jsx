@@ -3,7 +3,10 @@ import {
   listarRoles,
   listarPermisos,
   crearRol,
+  actualizarRol,
+  eliminarRol,
 } from '../services/rolesApi';
+import { useAuth } from '../context/AuthContext';
 
 import './Peliculas.css';
 
@@ -13,11 +16,13 @@ const formularioInicial = {
 };
 
 export default function RolesPermisos({ cambiarPagina }) {
+  const { user, roles: userRoles, logout, hasPermission } = useAuth();
   const [roles, setRoles] = useState([]);
   const [permisos, setPermisos] = useState([]);
   const [form, setForm] = useState(formularioInicial);
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
+  const [editandoId, setEditandoId] = useState(null);
   const [errorGeneral, setErrorGeneral] = useState('');
   const [errores, setErrores] = useState({});
 
@@ -31,6 +36,9 @@ export default function RolesPermisos({ cambiarPagina }) {
       setRoles(datosRoles);
       setPermisos(datosPermisos);
     } catch (error) {
+      if (error.status === 401) {
+        logout();
+      }
       setErrorGeneral(error.message);
     } finally {
       setCargando(false);
@@ -68,15 +76,55 @@ export default function RolesPermisos({ cambiarPagina }) {
     setErrores({});
 
     try {
-      await crearRol(form);
+      if (editandoId) {
+        await actualizarRol(editandoId, form);
+      } else {
+        await crearRol(form);
+      }
 
       setForm(formularioInicial);
+      setEditandoId(null);
       await cargar();
     } catch (error) {
-      setErrorGeneral(error.message);
+      if (error.status === 401) {
+        logout();
+      } else if (error.status === 403) {
+        setErrorGeneral('No tienes permiso para realizar esta acción.');
+      } else {
+        setErrorGeneral(error.message);
+      }
       setErrores(error.validation || {});
     } finally {
       setGuardando(false);
+    }
+  }
+
+  function editarRol(rol) {
+    setForm({
+      name: rol.name,
+      permissions: rol.permissions ? rol.permissions.map(p => p.name) : [],
+    });
+    setEditandoId(rol.id);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function cancelarEdicion() {
+    setForm(formularioInicial);
+    setEditandoId(null);
+    setErrorGeneral('');
+    setErrores({});
+  }
+
+  async function borrarRol(id) {
+    if (!window.confirm('¿Estás seguro de que deseas eliminar este rol?')) return;
+    
+    try {
+      await eliminarRol(id);
+      await cargar();
+    } catch (error) {
+      if (error.status === 401) logout();
+      else if (error.status === 403) alert('No tienes permiso para eliminar.');
+      else alert('Error al eliminar: ' + error.message);
     }
   }
 
@@ -113,20 +161,22 @@ export default function RolesPermisos({ cambiarPagina }) {
               Películas
             </button>
 
-            <button className="nav-item active" onClick={() => cambiarPagina?.('roles')}>
-              <svg
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-              </svg>
+            {hasPermission('roles.ver') && (
+              <button className="nav-item active" onClick={() => cambiarPagina?.('roles')}>
+                <svg
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                </svg>
 
-              Roles y permisos
+                Roles y permisos
 
-              <span className="nav-count">
-                {roles.length}
-              </span>
-            </button>
+                <span className="nav-count">
+                  {roles.length}
+                </span>
+              </button>
+            )}
 
             <div className="nav-item muted">
               <svg
@@ -143,6 +193,11 @@ export default function RolesPermisos({ cambiarPagina }) {
         </div>
 
         <div className="sidebar-footer">
+          <div className="user-profile" style={{ marginBottom: '16px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <strong style={{ fontSize: '14px', color: '#fff' }}>{user?.name}</strong>
+            <small style={{ color: 'var(--text-muted)' }}>{userRoles.join(', ')}</small>
+            <button onClick={logout} style={{ marginTop: '8px', padding: '6px 12px', background: 'rgba(255, 255, 255, 0.1)', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', alignSelf: 'flex-start' }}>Cerrar sesión</button>
+          </div>
           <div className="backend-status">
             <span></span>
 
@@ -245,14 +300,15 @@ export default function RolesPermisos({ cambiarPagina }) {
         </section>
 
         <div className="workspace">
-          <section className="panel form-panel">
+          {hasPermission('roles.crear') && (
+            <section className="panel form-panel">
             <div className="panel-header">
               <div>
                 <span className="section-label">
-                  NUEVO REGISTRO
+                  {editandoId ? 'EDITAR REGISTRO' : 'NUEVO REGISTRO'}
                 </span>
 
-                <h2>Crear Rol</h2>
+                <h2>{editandoId ? 'Editar Rol' : 'Crear Rol'}</h2>
               </div>
 
               <span className="panel-id">
@@ -331,26 +387,39 @@ export default function RolesPermisos({ cambiarPagina }) {
                 )}
               </div>
 
-              <button
-                className="submit"
-                type="submit"
-                disabled={guardando}
-                style={{ marginTop: '30px' }}
-              >
-                {guardando ? (
-                  <>
-                    <span className="spinner"></span>
-                    Guardando...
-                  </>
-                ) : (
-                  <>
-                    Registrar rol
-                    <span>→</span>
-                  </>
+              <div className="form-actions" style={{ display: 'flex', gap: '10px', marginTop: '30px' }}>
+                <button
+                  className="submit"
+                  type="submit"
+                  disabled={guardando}
+                  style={{ flex: 1, marginTop: 0 }}
+                >
+                  {guardando ? (
+                    <>
+                      <span className="spinner"></span>
+                      Guardando...
+                    </>
+                  ) : (
+                    <>
+                      {editandoId ? 'Actualizar rol' : 'Registrar rol'}
+                      <span>→</span>
+                    </>
+                  )}
+                </button>
+
+                {editandoId && (
+                  <button
+                    type="button"
+                    onClick={cancelarEdicion}
+                    style={{ padding: '0 20px', background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-primary)', borderRadius: '8px', cursor: 'pointer' }}
+                  >
+                    Cancelar
+                  </button>
                 )}
-              </button>
+              </div>
             </form>
           </section>
+          )}
 
           <section className="panel movies-panel">
             <div className="panel-header">
@@ -435,6 +504,14 @@ export default function RolesPermisos({ cambiarPagina }) {
                         {rol.permissions?.map(p => p.name).join(', ') || 'Sin permisos asignados.'}
                       </p>
 
+                      <div className="movie-actions" style={{ display: 'flex', gap: '10px', marginTop: '16px', borderTop: '1px solid var(--border-color)', paddingTop: '16px' }}>
+                        <button onClick={() => editarRol(rol)} style={{ background: 'transparent', color: 'var(--text-primary)', border: '1px solid var(--border-color)', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', flex: 1 }}>
+                          Editar
+                        </button>
+                        <button onClick={() => borrarRol(rol.id)} style={{ background: 'rgba(220, 38, 38, 0.1)', color: '#ef4444', border: '1px solid rgba(220, 38, 38, 0.2)', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', flex: 1 }}>
+                          Eliminar
+                        </button>
+                      </div>
                     </div>
                   </article>
                 ))}

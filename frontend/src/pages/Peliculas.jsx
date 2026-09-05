@@ -2,7 +2,10 @@ import { useEffect, useState } from 'react';
 import {
   crearPelicula,
   listarPeliculas,
+  actualizarPelicula,
+  eliminarPelicula,
 } from '../services/peliculasApi';
+import { useAuth } from '../context/AuthContext';
 
 import './Peliculas.css';
 
@@ -16,10 +19,12 @@ const formularioInicial = {
 };
 
 export default function Peliculas({ cambiarPagina }) {
+  const { user, roles, logout, hasPermission } = useAuth();
   const [peliculas, setPeliculas] = useState([]);
   const [form, setForm] = useState(formularioInicial);
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
+  const [editandoId, setEditandoId] = useState(null);
   const [errorGeneral, setErrorGeneral] = useState('');
   const [errores, setErrores] = useState({});
 
@@ -31,6 +36,9 @@ export default function Peliculas({ cambiarPagina }) {
       const datos = await listarPeliculas();
       setPeliculas(datos);
     } catch (error) {
+      if (error.status === 401) {
+        logout();
+      }
       setErrorGeneral(error.message);
     } finally {
       setCargando(false);
@@ -58,18 +66,64 @@ export default function Peliculas({ cambiarPagina }) {
     setErrores({});
 
     try {
-      await crearPelicula({
+      const datosPelicula = {
         ...form,
         duracion: Number(form.duracion),
-      });
+      };
+
+      if (editandoId) {
+        await actualizarPelicula(editandoId, datosPelicula);
+      } else {
+        await crearPelicula(datosPelicula);
+      }
 
       setForm(formularioInicial);
+      setEditandoId(null);
       await cargar();
     } catch (error) {
-      setErrorGeneral(error.message);
+      if (error.status === 401) {
+        logout();
+      } else if (error.status === 403) {
+        setErrorGeneral('No tienes permiso para realizar esta acción.');
+      } else {
+        setErrorGeneral(error.message);
+      }
       setErrores(error.validation || {});
     } finally {
       setGuardando(false);
+    }
+  }
+
+  function editarPelicula(pelicula) {
+    setForm({
+      titulo: pelicula.titulo,
+      sinopsis: pelicula.sinopsis || '',
+      genero: pelicula.genero,
+      duracion: pelicula.duracion,
+      clasificacion: pelicula.clasificacion,
+      activo: pelicula.activo,
+    });
+    setEditandoId(pelicula.id);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function cancelarEdicion() {
+    setForm(formularioInicial);
+    setEditandoId(null);
+    setErrorGeneral('');
+    setErrores({});
+  }
+
+  async function borrarPelicula(id) {
+    if (!window.confirm('¿Estás seguro de que deseas eliminar esta película?')) return;
+    
+    try {
+      await eliminarPelicula(id);
+      await cargar();
+    } catch (error) {
+      if (error.status === 401) logout();
+      else if (error.status === 403) alert('No tienes permiso para eliminar.');
+      else alert('Error al eliminar: ' + error.message);
     }
   }
 
@@ -114,16 +168,18 @@ export default function Peliculas({ cambiarPagina }) {
               </span>
             </button>
 
-            <button className="nav-item" onClick={() => cambiarPagina?.('roles')}>
-              <svg
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-              </svg>
+            {hasPermission('roles.ver') && (
+              <button className="nav-item" onClick={() => cambiarPagina?.('roles')}>
+                <svg
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                </svg>
 
-              Roles y permisos
-            </button>
+                Roles y permisos
+              </button>
+            )}
 
             <div className="nav-item muted">
               <svg
@@ -140,6 +196,11 @@ export default function Peliculas({ cambiarPagina }) {
         </div>
 
         <div className="sidebar-footer">
+          <div className="user-profile" style={{ marginBottom: '16px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <strong style={{ fontSize: '14px', color: '#fff' }}>{user?.name}</strong>
+            <small style={{ color: 'var(--text-muted)' }}>{roles.join(', ')}</small>
+            <button onClick={logout} style={{ marginTop: '8px', padding: '6px 12px', background: 'rgba(255, 255, 255, 0.1)', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', alignSelf: 'flex-start' }}>Cerrar sesión</button>
+          </div>
           <div className="backend-status">
             <span></span>
 
@@ -251,14 +312,15 @@ export default function Peliculas({ cambiarPagina }) {
         </section>
 
         <div className="workspace">
-          <section className="panel form-panel">
+          {hasPermission('peliculas.crear') && (
+            <section className="panel form-panel">
             <div className="panel-header">
               <div>
                 <span className="section-label">
-                  NUEVO REGISTRO
+                  {editandoId ? 'EDITAR REGISTRO' : 'NUEVO REGISTRO'}
                 </span>
 
-                <h2>Agregar película</h2>
+                <h2>{editandoId ? 'Editar película' : 'Agregar película'}</h2>
               </div>
 
               <span className="panel-id">
@@ -402,25 +464,39 @@ export default function Peliculas({ cambiarPagina }) {
                 </span>
               </label>
 
-              <button
-                className="submit"
-                type="submit"
-                disabled={guardando}
-              >
-                {guardando ? (
-                  <>
-                    <span className="spinner"></span>
-                    Guardando...
-                  </>
-                ) : (
-                  <>
-                    Registrar película
-                    <span>→</span>
-                  </>
+              <div className="form-actions" style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+                <button
+                  className="submit"
+                  type="submit"
+                  disabled={guardando}
+                  style={{ flex: 1 }}
+                >
+                  {guardando ? (
+                    <>
+                      <span className="spinner"></span>
+                      Guardando...
+                    </>
+                  ) : (
+                    <>
+                      {editandoId ? 'Actualizar película' : 'Registrar película'}
+                      <span>→</span>
+                    </>
+                  )}
+                </button>
+
+                {editandoId && (
+                  <button
+                    type="button"
+                    onClick={cancelarEdicion}
+                    style={{ padding: '0 20px', background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-primary)', borderRadius: '8px', cursor: 'pointer' }}
+                  >
+                    Cancelar
+                  </button>
                 )}
-              </button>
+              </div>
             </form>
           </section>
+          )}
 
           <section className="panel movies-panel">
             <div className="panel-header">
@@ -548,6 +624,19 @@ export default function Peliculas({ cambiarPagina }) {
                             #{pelicula.id}
                           </strong>
                         </div>
+                      </div>
+
+                      <div className="movie-actions" style={{ display: 'flex', gap: '10px', marginTop: '16px', borderTop: '1px solid var(--border-color)', paddingTop: '16px' }}>
+                        {hasPermission('peliculas.editar') && (
+                          <button onClick={() => editarPelicula(pelicula)} style={{ background: 'transparent', color: 'var(--text-primary)', border: '1px solid var(--border-color)', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', flex: 1 }}>
+                            Editar
+                          </button>
+                        )}
+                        {hasPermission('peliculas.eliminar') && (
+                          <button onClick={() => borrarPelicula(pelicula.id)} style={{ background: 'rgba(220, 38, 38, 0.1)', color: '#ef4444', border: '1px solid rgba(220, 38, 38, 0.2)', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', flex: 1 }}>
+                            Eliminar
+                          </button>
+                        )}
                       </div>
                     </div>
                   </article>

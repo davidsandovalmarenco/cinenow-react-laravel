@@ -1,3 +1,5 @@
+import { getAuthHeaders } from './authApi';
+
 const API_URL_ROLES = 'http://127.0.0.1:8000/api/roles';
 const API_URL_PERMISSIONS = 'http://127.0.0.1:8000/api/permissions';
 
@@ -13,6 +15,7 @@ async function procesarRespuesta(respuesta) {
     );
 
     error.validation = datos?.errors || {};
+    error.status = respuesta.status;
 
     throw error;
   }
@@ -24,6 +27,7 @@ export async function listarRoles() {
   const respuesta = await fetch(API_URL_ROLES, {
     headers: {
       Accept: 'application/json',
+      ...getAuthHeaders(),
     },
   });
 
@@ -36,6 +40,7 @@ export async function crearRol(rol) {
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',
+      ...getAuthHeaders(),
     },
     body: JSON.stringify(rol),
   });
@@ -49,6 +54,7 @@ export async function actualizarRol(id, rol) {
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',
+      ...getAuthHeaders(),
     },
     body: JSON.stringify(rol),
   });
@@ -61,6 +67,7 @@ export async function eliminarRol(id) {
     method: 'DELETE',
     headers: {
       Accept: 'application/json',
+      ...getAuthHeaders(),
     },
   });
 
@@ -71,6 +78,7 @@ export async function listarPermisos() {
   const respuesta = await fetch(API_URL_PERMISSIONS, {
     headers: {
       Accept: 'application/json',
+      ...getAuthHeaders(),
     },
   });
 
@@ -83,6 +91,7 @@ export async function crearPermiso(permiso) {
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',
+      ...getAuthHeaders(),
     },
     body: JSON.stringify(permiso),
   });
