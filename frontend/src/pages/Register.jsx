@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { register } from '../services/authApi';
 import './Login.css';
 
-export default function Login({ alRegistro }) {
-  const { login } = useAuth();
-  const [form, setForm] = useState({ email: '', password: '' });
+export default function Register({ alLogin }) {
+  const { login: setAuthData } = useAuth(); // We map login function which sets context
+  const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [error, setError] = useState('');
+  const [errores, setErrores] = useState({});
   const [cargando, setCargando] = useState(false);
 
   function cambiarCampo(e) {
@@ -16,15 +18,21 @@ export default function Login({ alRegistro }) {
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
+    setErrores({});
     setCargando(true);
     
     try {
-      await login(form);
+      const data = await register(form);
+      // set AuthContext
+      setAuthData(form); // Actually, register returns data directly so we should update context. 
+      // But useAuth login does a fetch. We can just force a reload, or we need to add register to AuthContext.
+      // Let's just reload to have App.jsx re-evaluate AuthContext.
+      window.location.reload();
     } catch (err) {
-      if (err.validation && err.validation.email) {
-        setError(err.validation.email[0]);
+      if (err.validation) {
+        setErrores(err.validation);
       } else {
-        setError(err.message || 'Error al iniciar sesión');
+        setError(err.message || 'Error al registrarse');
       }
     } finally {
       setCargando(false);
@@ -39,8 +47,8 @@ export default function Login({ alRegistro }) {
           <div className="logo-text">Cine<span>Now</span></div>
         </div>
         
-        <h2>Iniciar Sesión</h2>
-        <p className="login-subtitle">Accede a tu cuenta para continuar</p>
+        <h2>Crear Cuenta</h2>
+        <p className="login-subtitle">Únete para explorar nuestras películas</p>
 
         {error && (
           <div className="login-alert">
@@ -49,6 +57,19 @@ export default function Login({ alRegistro }) {
         )}
 
         <form onSubmit={handleSubmit} className="login-form">
+          <div className="field">
+            <label>Nombre</label>
+            <input
+              type="text"
+              name="name"
+              value={form.name}
+              onChange={cambiarCampo}
+              placeholder="Tu nombre completo"
+              required
+            />
+            {errores.name && <small style={{color: '#ef4444'}}>{errores.name[0]}</small>}
+          </div>
+
           <div className="field">
             <label>Email</label>
             <input
@@ -59,6 +80,7 @@ export default function Login({ alRegistro }) {
               placeholder="correo@ejemplo.com"
               required
             />
+            {errores.email && <small style={{color: '#ef4444'}}>{errores.email[0]}</small>}
           </div>
 
           <div className="field">
@@ -68,24 +90,25 @@ export default function Login({ alRegistro }) {
               name="password"
               value={form.password}
               onChange={cambiarCampo}
-              placeholder="••••••••"
+              placeholder="Mínimo 4 caracteres"
               required
             />
+            {errores.password && <small style={{color: '#ef4444'}}>{errores.password[0]}</small>}
           </div>
 
           <button type="submit" className="submit login-submit" disabled={cargando}>
             {cargando ? (
               <>
                 <span className="spinner"></span>
-                Iniciando sesión...
+                Registrando...
               </>
             ) : (
-              'Iniciar sesión'
+              'Crear cuenta'
             )}
           </button>
 
           <p style={{textAlign: 'center', marginTop: '16px', fontSize: '14px', color: 'var(--text-muted)'}}>
-            ¿No tienes cuenta? <button type="button" onClick={alRegistro} style={{background: 'none', border: 'none', color: '#e50914', cursor: 'pointer', fontWeight: 'bold'}}>Regístrate</button>
+            ¿Ya tienes cuenta? <button type="button" onClick={alLogin} style={{background: 'none', border: 'none', color: '#e50914', cursor: 'pointer', fontWeight: 'bold'}}>Inicia sesión</button>
           </p>
         </form>
       </div>

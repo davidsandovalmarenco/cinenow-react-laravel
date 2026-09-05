@@ -181,6 +181,13 @@ export default function Peliculas({ cambiarPagina }) {
               </button>
             )}
 
+            {roles.includes('Administrador') && (
+              <button className="nav-item" onClick={() => cambiarPagina?.('usuarios')}>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                Usuarios
+              </button>
+            )}
+
             <div className="nav-item muted">
               <svg
                 viewBox="0 0 24 24"

@@ -39,6 +39,23 @@ export async function login(credenciales) {
   return data;
 }
 
+export async function register(datos) {
+  const respuesta = await fetch(`${API_URL}/register`, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(datos),
+  });
+
+  const data = await procesarRespuesta(respuesta);
+  if (data.token) {
+    localStorage.setItem('auth_token', data.token);
+  }
+  return data;
+}
+
 export async function logout() {
   const respuesta = await fetch(`${API_URL}/logout`, {
     method: 'POST',
