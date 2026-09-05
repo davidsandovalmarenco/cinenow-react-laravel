@@ -5,7 +5,7 @@ import './Login.css';
 
 export default function Register({ alLogin }) {
   const { login: setAuthData } = useAuth(); // We map login function which sets context
-  const [form, setForm] = useState({ name: '', email: '', password: '' });
+  const [form, setForm] = useState({ name: '', username: '', email: '', password: '' });
   const [error, setError] = useState('');
   const [errores, setErrores] = useState({});
   const [cargando, setCargando] = useState(false);
@@ -58,7 +58,7 @@ export default function Register({ alLogin }) {
 
         <form onSubmit={handleSubmit} className="login-form">
           <div className="field">
-            <label>Nombre</label>
+            <label>Nombre completo</label>
             <input
               type="text"
               name="name"
@@ -68,6 +68,19 @@ export default function Register({ alLogin }) {
               required
             />
             {errores.name && <small style={{color: '#ef4444'}}>{errores.name[0]}</small>}
+          </div>
+
+          <div className="field">
+            <label>Nombre de usuario (Username)</label>
+            <input
+              type="text"
+              name="username"
+              value={form.username}
+              onChange={cambiarCampo}
+              placeholder="Ej. cinenow_fan"
+              required
+            />
+            {errores.username && <small style={{color: '#ef4444'}}>{errores.username[0]}</small>}
           </div>
 
           <div className="field">

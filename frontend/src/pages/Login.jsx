@@ -4,7 +4,7 @@ import './Login.css';
 
 export default function Login({ alRegistro }) {
   const { login } = useAuth();
-  const [form, setForm] = useState({ email: '', password: '' });
+  const [form, setForm] = useState({ login: '', password: '' });
   const [error, setError] = useState('');
   const [cargando, setCargando] = useState(false);
 
@@ -21,8 +21,8 @@ export default function Login({ alRegistro }) {
     try {
       await login(form);
     } catch (err) {
-      if (err.validation && err.validation.email) {
-        setError(err.validation.email[0]);
+      if (err.validation && err.validation.login) {
+        setError(err.validation.login[0]);
       } else {
         setError(err.message || 'Error al iniciar sesión');
       }
@@ -50,13 +50,13 @@ export default function Login({ alRegistro }) {
 
         <form onSubmit={handleSubmit} className="login-form">
           <div className="field">
-            <label>Email</label>
+            <label>Email o Nombre de usuario</label>
             <input
-              type="email"
-              name="email"
-              value={form.email}
+              type="text"
+              name="login"
+              value={form.login}
               onChange={cambiarCampo}
-              placeholder="correo@ejemplo.com"
+              placeholder="Ej. david o correo@ejemplo.com"
               required
             />
           </div>

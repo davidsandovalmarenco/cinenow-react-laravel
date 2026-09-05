@@ -13,12 +13,14 @@ class AuthController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
+            'username' => 'required|string|max:255|unique:users',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:4',
         ]);
 
         $user = User::create([
             'name' => $request->name,
+            'username' => $request->username,
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
@@ -39,17 +41,19 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
+            'login' => 'required|string',
+            'password' => 'required|string',
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        $user = User::where('email', $request->login)
+                    ->orWhere('username', $request->login)
+                    ->first();
 
         if (! $user || ! Hash::check($request->password, $user->password)) {
             return response()->json([
                 'message' => 'Credenciales incorrectas.',
                 'errors' => [
-                    'email' => ['Las credenciales proporcionadas no coinciden con nuestros registros.']
+                    'login' => ['Las credenciales proporcionadas no coinciden con nuestros registros.']
                 ]
             ], 422);
         }

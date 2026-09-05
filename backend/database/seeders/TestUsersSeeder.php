@@ -15,6 +15,7 @@ class TestUsersSeeder extends Seeder
             ['email' => 'admin@cinenow.test'],
             [
                 'name' => 'Administrador CineNow',
+                'username' => 'admin',
                 'password' => Hash::make('password'),
             ]
         );
@@ -26,6 +27,7 @@ class TestUsersSeeder extends Seeder
             ['email' => 'editor@cinenow.test'],
             [
                 'name' => 'Editor CineNow',
+                'username' => 'editor',
                 'password' => Hash::make('password'),
             ]
         );
@@ -37,6 +39,7 @@ class TestUsersSeeder extends Seeder
             ['email' => 'consulta@cinenow.test'],
             [
                 'name' => 'Consulta CineNow',
+                'username' => 'consulta',
                 'password' => Hash::make('password'),
             ]
         );
@@ -48,6 +51,7 @@ class TestUsersSeeder extends Seeder
             ['email' => 'david@cinenow.test'],
             [
                 'name' => 'David',
+                'username' => 'david',
                 'password' => Hash::make('12345'),
             ]
         );
