@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { login as loginApi, logout as logoutApi, getCurrentUser } from '../services/authApi';
+import { login as loginApi, register as registerApi, logout as logoutApi, getCurrentUser } from '../services/authApi';
 
 const AuthContext = createContext();
 
@@ -41,6 +41,20 @@ export function AuthProvider({ children }) {
     setPermissions([]);
   }
 
+  async function register(form) {
+    const data = await registerApi(form);
+    setUser(data.user);
+    setRoles(data.roles);
+    setPermissions(data.permissions);
+  }
+
+  async function refreshUser() {
+    const data = await getCurrentUser();
+    setUser(data.user);
+    setRoles(data.roles);
+    setPermissions(data.permissions);
+  }
+
   function hasPermission(permission) {
     return permissions.includes(permission);
   }
@@ -58,6 +72,8 @@ export function AuthProvider({ children }) {
         loadingAuth,
         authenticated: !!user,
         login,
+        register,
+        refreshUser,
         logout,
         hasPermission,
         hasRole,

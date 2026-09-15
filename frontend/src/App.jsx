@@ -4,10 +4,11 @@ import RolesPermisos from './pages/RolesPermisos';
 import Usuarios from './pages/Usuarios';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import PendingApproval from './pages/PendingApproval';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
 function AppContent() {
-  const { authenticated, loadingAuth } = useAuth();
+  const { authenticated, loadingAuth, permissions, hasRole } = useAuth();
   const [paginaActual, setPaginaActual] = useState('peliculas');
   const [mostrandoRegistro, setMostrandoRegistro] = useState(false);
 
@@ -19,6 +20,10 @@ function AppContent() {
     return mostrandoRegistro ? 
       <Register alLogin={() => setMostrandoRegistro(false)} /> : 
       <Login alRegistro={() => setMostrandoRegistro(true)} />;
+  }
+
+  if (permissions.length === 0 && !hasRole('Administrador')) {
+    return <PendingApproval />;
   }
 
   return (

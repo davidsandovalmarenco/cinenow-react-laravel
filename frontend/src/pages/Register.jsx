@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { register } from '../services/authApi';
 import './Login.css';
 
 export default function Register({ alLogin }) {
-  const { login: setAuthData } = useAuth(); // We map login function which sets context
+  const { register } = useAuth();
   const [form, setForm] = useState({ name: '', username: '', email: '', password: '' });
   const [error, setError] = useState('');
   const [errores, setErrores] = useState({});
@@ -22,12 +21,7 @@ export default function Register({ alLogin }) {
     setCargando(true);
     
     try {
-      const data = await register(form);
-      // set AuthContext
-      setAuthData(form); // Actually, register returns data directly so we should update context. 
-      // But useAuth login does a fetch. We can just force a reload, or we need to add register to AuthContext.
-      // Let's just reload to have App.jsx re-evaluate AuthContext.
-      window.location.reload();
+      await register(form);
     } catch (err) {
       if (err.validation) {
         setErrores(err.validation);
