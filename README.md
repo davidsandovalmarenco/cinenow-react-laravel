@@ -1,223 +1,112 @@
+﻿<div align="center">
+
 # 🎬 CineNow
 
-Sistema web de gestión cinematográfica desarrollado como proyecto Full Stack con **React**, **Laravel** y **MySQL**.
+### Gestión de películas con roles, permisos y aprobación de cuentas
 
-CineNow implementa un primer módulo funcional para la gestión de películas, conectando el frontend con una API REST desarrollada en Laravel y almacenando la información de forma persistente en MySQL.
+Una aplicación Full Stack para administrar un catálogo cinematográfico y controlar quién puede consultar, crear, editar o eliminar sus registros.
 
----
+**React 19 · Laravel 13 · MySQL · Sanctum · Spatie Permission**
 
-## ✨ Características
+[Funcionalidades](#funcionalidades) · [Instalación](#instalación-en-otra-pc) · [Accesos](#roles-y-aprobación) · [API](#api-rest)
 
-Actualmente el proyecto incluye el módulo **Películas**.
-
-- 🎞️ Registro de películas
-- 📋 Listado de películas almacenadas
-- 🔄 Comunicación React → Laravel mediante Fetch API
-- 🗄️ Persistencia de datos en MySQL
-- ✅ Validación de datos desde Laravel
-- ⚠️ Manejo de errores HTTP y validaciones
-- ⏳ Estados de carga y procesamiento
-- 🌐 API REST
-- 🎨 Interfaz responsive estilo dashboard
-
-La API también dispone de operaciones CRUD para futuras ampliaciones del frontend.
+</div>
 
 ---
 
-## 🧱 Arquitectura
+## Funcionalidades
 
-```text
-React
-  │
-  │ HTTP / JSON
-  ▼
-Laravel REST API
-  │
-  ▼
-PeliculaController
-  │
-  ▼
-Eloquent ORM
-  │
-  ▼
-MySQL
+- **Películas:** consulta, creación, edición y eliminación según los permisos asignados.
+- **Autenticación:** registro, login con usuario o correo y cierre de sesión con Laravel Sanctum.
+- **Aprobación de cuentas:** pantalla de espera para usuarios sin permisos.
+- **Usuarios:** asignación de roles desde el panel del administrador.
+- **Roles y permisos:** gestión de roles y sus permisos asociados.
+- **Protección en Laravel:** la API verifica los accesos además de los controles de la interfaz.
+- **Interfaz responsive:** validación de formularios, estados de carga y mensajes de error.
+
+## Arquitectura
+
+```mermaid
+flowchart LR
+    A[React] -->|HTTP / JSON + token| B[Laravel API]
+    B --> C[Sanctum: autenticación]
+    C --> D[Spatie: roles y permisos]
+    D --> E[Controladores y modelos]
+    E --> F[(MySQL)]
 ```
 
-Cuando se registra una película desde React, los datos son enviados en formato JSON a Laravel.  
-El backend valida la información, utiliza Eloquent ORM para almacenarla en MySQL y devuelve una respuesta JSON al frontend.
+phpMyAdmin permite administrar y exportar MySQL. Laravel prepara las tablas mediante **migraciones** y carga los accesos iniciales mediante **seeders**.
 
----
+## Requisitos
 
-## 🛠️ Tecnologías
+| Herramienta | Versión / condición |
+| --- | --- |
+| PHP | 8.3 o superior, compatible con `composer.lock` |
+| Composer | 2.x |
+| Node.js | Compatible con Vite: `^20.19.0` o `>=22.12.0` |
+| npm | Incluido con Node.js |
+| MySQL | Servidor iniciado |
+| Git | Disponible en la terminal |
+| Laragon / phpMyAdmin | Opcionales para facilitar el entorno local |
 
-### Frontend
+Habilita las extensiones requeridas por Laravel y `pdo_mysql`. Para las pruebas también necesitas `pdo_sqlite`.
 
-- React
-- Vite
-- JavaScript
-- CSS
-- Fetch API
-
-### Backend
-
-- Laravel
-- PHP
-- Eloquent ORM
-- REST API
-- Laravel Sanctum instalado para soporte API
-
-### Base de datos
-
-- MySQL / MariaDB
-
-### Herramientas utilizadas
-
-- Laragon
-- Composer
-- Node.js / npm
-- phpMyAdmin
-- Postman
-- Git
-- GitHub
-- Visual Studio Code
-
----
-
-## 📂 Estructura del proyecto
-
-```text
-cinenow-react-laravel/
-│
-├── backend/
-│   ├── app/
-│   │   ├── Http/
-│   │   │   └── Controllers/
-│   │   │       └── Api/
-│   │   │           └── PeliculaController.php
-│   │   │
-│   │   └── Models/
-│   │       └── Pelicula.php
-│   │
-│   ├── database/
-│   │   └── migrations/
-│   │
-│   ├── routes/
-│   │   └── api.php
-│   │
-│   ├── .env.example
-│   └── artisan
-│
-├── frontend/
-│   ├── src/
-│   │   ├── pages/
-│   │   │   ├── Peliculas.jsx
-│   │   │   └── Peliculas.css
-│   │   │
-│   │   ├── services/
-│   │   │   └── peliculasApi.js
-│   │   │
-│   │   └── App.jsx
-│   │
-│   └── package.json
-│
-└── README.md
+```sh
+php -v
+composer --version
+node -v
+npm -v
+git --version
 ```
 
----
+## Instalación en otra PC
 
-# 🚀 Instalación después de clonar
+### 1. Clonar el repositorio
 
-Estas instrucciones permiten reconstruir el proyecto en un equipo nuevo.
-
-## 1. Clonar el repositorio
-
-```bash
-git clone <URL-DEL-REPOSITORIO>
-```
-
-Entrar al proyecto:
-
-```bash
+```sh
+git clone https://github.com/davidsandovalmarenco/cinenow-react-laravel.git
 cd cinenow-react-laravel
 ```
 
----
+### 2. Preparar el backend
 
-# ⚙️ Backend — Laravel
-
-## 2. Entrar al backend
-
-```bash
+```sh
 cd backend
-```
-
-## 3. Instalar dependencias PHP
-
-```bash
 composer install
 ```
 
-Composer utilizará el archivo `composer.lock` para instalar las dependencias del proyecto.
-
----
-
-## 4. Crear el archivo `.env`
-
-En Windows:
+Crea la configuración local en **PowerShell**:
 
 ```powershell
-copy .env.example .env
+Copy-Item .env.example .env
 ```
 
-En Linux/macOS:
+En **Linux o macOS**:
 
-```bash
+```sh
 cp .env.example .env
 ```
 
----
+Genera la clave para esta instalación:
 
-## 5. Generar la clave de Laravel
-
-```bash
+```sh
 php artisan key:generate
 ```
 
-Resultado esperado:
+### 3. Configurar MySQL
 
-```text
-INFO  Application key set successfully.
+Inicia MySQL y crea una base vacía llamada `cinenow` desde phpMyAdmin o con SQL:
+
+```sql
+CREATE DATABASE cinenow CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
 
----
+Edita `backend/.env`. La plantilla usa SQLite: **reemplaza `DB_CONNECTION=sqlite` y habilita las variables de MySQL**, sin duplicarlas.
 
-# 🗄️ Base de datos
+```dotenv
+APP_NAME=CineNow
+APP_URL=http://127.0.0.1:8000
 
-## 6. Crear la base de datos
-
-Iniciar **MySQL** desde Laragon, XAMPP o el entorno correspondiente.
-
-Crear una base de datos llamada:
-
-```text
-cinenow
-```
-
-Puede hacerse desde phpMyAdmin.
-
----
-
-## 7. Configurar MySQL en `.env`
-
-Editar:
-
-```text
-backend/.env
-```
-
-y configurar:
-
-```env
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
@@ -226,308 +115,204 @@ DB_USERNAME=root
 DB_PASSWORD=
 ```
 
-> Si MySQL utiliza otra contraseña, usuario o puerto, deben colocarse los valores correspondientes.
+Ajusta el puerto, usuario y contraseña según tu equipo. Desde `backend`, ejecuta:
 
----
-
-## 8. Limpiar la configuración de Laravel
-
-```bash
+```sh
 php artisan config:clear
 ```
 
----
+### 4. Crear las tablas, roles y administrador
 
-## 9. Crear las tablas
+**Instalación nueva:** ejecuta desde `backend`:
 
-```bash
+```sh
 php artisan migrate
+php artisan db:seed
 ```
 
-Esto creará las tablas necesarias, incluyendo:
+Esto crea las tablas, los tres roles iniciales, diez permisos y el administrador `david`. El catálogo comienza vacío.
 
-```text
-peliculas
-users
-cache
-jobs
-migrations
-personal_access_tokens
+**Si tienes un respaldo `.sql`:** impórtalo en la base vacía desde phpMyAdmin **antes de ejecutar esos dos comandos**. Después ejecuta igualmente `migrate` y `db:seed` para agregar las migraciones y accesos que falten en una copia antigua.
+
+> Usa `migrate` para aplicar cambios pendientes. No uses `migrate:fresh` ni `migrate:refresh` sobre una base que quieras conservar: pueden borrar tablas y datos.
+
+El seeder conserva la contraseña de `david` si ya existe y le asigna el rol Administrador. También restablece los permisos definidos para los roles iniciales; tenlo en cuenta si los personalizaste.
+
+### 5. Iniciar Laravel
+
+Desde `backend`:
+
+```sh
+php artisan serve --host=127.0.0.1 --port=8000
 ```
 
-La tabla principal de CineNow es:
+Deja la terminal abierta. La API estará en `http://127.0.0.1:8000/api`.
 
-```text
-peliculas
-```
+### 6. Preparar e iniciar React
 
----
+Abre una **segunda terminal** en la raíz del repositorio:
 
-# ▶️ Ejecutar Laravel
-
-Desde:
-
-```text
-cinenow-react-laravel/backend
-```
-
-ejecutar:
-
-```bash
-php artisan serve
-```
-
-Laravel estará disponible normalmente en:
-
-```text
-http://127.0.0.1:8000
-```
-
-No cerrar esta terminal mientras se utiliza la aplicación.
-
----
-
-# ⚛️ Frontend — React
-
-Abrir una **segunda terminal**.
-
-## 10. Entrar al frontend
-
-```bash
+```sh
 cd frontend
-```
-
-Si estás ubicado en `backend`:
-
-```bash
-cd ../frontend
-```
-
----
-
-## 11. Instalar dependencias
-
-```bash
-npm install
-```
-
----
-
-## 12. Ejecutar Vite
-
-```bash
+npm ci
 npm run dev
 ```
 
-El frontend estará disponible normalmente en:
+Abre la dirección que indique Vite, normalmente **http://localhost:5173**.
+
+Los servicios de `frontend/src/services/` apuntan a `http://127.0.0.1:8000/api`. Si cambias la dirección del backend, actualiza las URLs de esos servicios.
+
+### 7. Iniciar sesión
+
+| Campo | Valor inicial |
+| --- | --- |
+| Usuario | `david` |
+| Correo alternativo | `david@cinenow.test` |
+| Contraseña | `12345` |
+| Rol | Administrador |
+
+Estas credenciales son para la demostración local. Si importaste un usuario `david` existente, usa su contraseña anterior.
+
+## Roles y aprobación
+
+| Acción | Administrador | Editor | Consulta |
+| --- | :---: | :---: | :---: |
+| Ver películas | ✓ | ✓ | ✓ |
+| Crear películas | ✓ | ✓ | — |
+| Editar películas | ✓ | ✓ | — |
+| Eliminar películas | ✓ | — | — |
+| Administrar roles y permisos | ✓ | — | — |
+| Asignar roles a usuarios | ✓ | — | — |
+
+### Aprobar una cuenta
+
+1. El usuario se registra desde **Crear cuenta**.
+2. Como no tiene permisos, ve **Cuenta pendiente de aprobación**.
+3. David u otro administrador entra en **Usuarios**.
+4. Edita la cuenta, selecciona un rol y guarda los cambios.
+5. El usuario pulsa **Comprobar aprobación** para actualizar su acceso.
+
+La aprobación funciona mediante la asignación de permisos a través de roles. Una cuenta sin permisos sigue en espera. No se envían notificaciones automáticas al administrador.
+
+## Uso diario
+
+Después de instalar, inicia MySQL y ejecuta estos comandos en dos terminales:
+
+| Terminal | Carpeta | Comando |
+| --- | --- | --- |
+| Backend | `backend` | `php artisan serve --host=127.0.0.1 --port=8000` |
+| Frontend | `frontend` | `npm run dev` |
+
+No necesitas reinstalar dependencias ni ejecutar seeders cada vez que abres el proyecto.
+
+## Respaldar y trasladar los datos
+
+**Clonar el repositorio no copia los registros de tu MySQL local.** Git conserva el código, las migraciones y los seeders.
+
+Para trasladar también películas, usuarios y permisos:
+
+1. Selecciona la base `cinenow` en phpMyAdmin.
+2. Exporta **todas las tablas**, con estructura y datos, en formato SQL.
+3. Lleva el respaldo a la nueva PC.
+4. Sigue la instalación e impórtalo en el paso 4.
+
+Incluye `users`, `roles`, `permissions`, `role_has_permissions`, `model_has_roles`, `model_has_permissions` y `migrations`, además de `peliculas` y las otras tablas del sistema.
+
+El archivo `.env` es local y no se versiona. Cada equipo debe configurarlo desde `.env.example`.
+
+## Estructura
 
 ```text
-http://localhost:5173
+cinenow-react-laravel/
+├── backend/
+│   ├── app/Http/Controllers/Api/   # Autenticación, películas y accesos
+│   ├── app/Models/                # Modelos de datos
+│   ├── database/migrations/       # Estructura de las tablas
+│   ├── database/seeders/          # Roles, permisos y administrador
+│   ├── routes/api.php            # Rutas protegidas
+│   └── tests/                    # Pruebas del backend
+├── frontend/
+│   ├── src/context/              # Estado de autenticación
+│   ├── src/pages/                # Pantallas de la aplicación
+│   └── src/services/             # Conexión con la API
+└── README.md
 ```
 
----
+## API REST
 
-# ✅ Comprobación
+Base local: `http://127.0.0.1:8000/api`.
 
-Debe haber dos servidores ejecutándose simultáneamente:
+| Método | Ruta | Acceso |
+| --- | --- | --- |
+| POST | `/register` | Público |
+| POST | `/login` | Público |
+| GET | `/me` | Autenticado |
+| POST | `/logout` | Autenticado |
+| GET | `/peliculas`, `/peliculas/{id}` | `peliculas.ver` |
+| POST | `/peliculas` | `peliculas.crear` |
+| PUT / PATCH | `/peliculas/{id}` | `peliculas.editar` |
+| DELETE | `/peliculas/{id}` | `peliculas.eliminar` |
+| GET / POST | `/roles` | Administrador |
+| GET / PUT / PATCH / DELETE | `/roles/{id}` | Administrador |
+| GET / POST | `/permissions` | Administrador |
+| GET | `/users` | Administrador |
+| PUT | `/users/{id}/roles` | Administrador |
 
-```text
-Laravel API
-http://127.0.0.1:8000
+Las rutas protegidas requieren el token devuelto al iniciar sesión:
 
-React + Vite
-http://localhost:5173
+```http
+Accept: application/json
+Content-Type: application/json
+Authorization: Bearer <token>
 ```
 
----
+Para consultar las rutas desde `backend`:
 
-# 🌐 API REST
-
-Endpoint principal:
-
-```text
-/api/peliculas
-```
-
-URL completa en desarrollo:
-
-```text
-http://127.0.0.1:8000/api/peliculas
-```
-
-## Rutas disponibles
-
-| Método | Endpoint | Acción |
-|---|---|---|
-| GET | `/api/peliculas` | Listar películas |
-| POST | `/api/peliculas` | Registrar película |
-| GET | `/api/peliculas/{pelicula}` | Consultar película |
-| PUT / PATCH | `/api/peliculas/{pelicula}` | Actualizar película |
-| DELETE | `/api/peliculas/{pelicula}` | Eliminar película |
-
-Las rutas pueden comprobarse ejecutando:
-
-```bash
+```sh
 php artisan route:list --path=api
 ```
 
----
+## Verificación
 
-# 🎞️ Entidad Película
+Desde `backend`:
 
-La tabla `peliculas` contiene los siguientes campos principales:
-
-| Campo | Tipo | Descripción |
-|---|---|---|
-| `titulo` | string | Nombre de la película |
-| `sinopsis` | text | Descripción de la película |
-| `genero` | string | Género cinematográfico |
-| `duracion` | integer | Duración en minutos |
-| `clasificacion` | string | Clasificación de edad |
-| `activo` | boolean | Estado de disponibilidad |
-
-Laravel también administra automáticamente:
-
-```text
-id
-created_at
-updated_at
+```sh
+php artisan test
 ```
 
----
+Las pruebas de acceso usan SQLite en memoria y cubren registro sin permisos, aprobación por un administrador, restricciones y creación, edición y eliminación de películas.
 
-# 🧪 Probar la API
+Desde `frontend`:
 
-## GET
-
-Abrir:
-
-```text
-http://127.0.0.1:8000/api/peliculas
+```sh
+npm run build
 ```
 
-Laravel devolverá los registros en formato JSON.
+La compilación se genera en `frontend/dist`.
+
+## Solución de problemas
+
+| Problema | Solución |
+| --- | --- |
+| No se reconoce `php`, `composer` o `npm` | Instala la herramienta y configura `PATH`. En Laragon puedes usar su terminal. |
+| `could not find driver` | Habilita `pdo_mysql`, o `pdo_sqlite` para las pruebas, en el PHP usado por la terminal. |
+| Error de conexión a MySQL | Revisa que el servidor esté iniciado y que `.env` tenga la base, puerto y credenciales correctos. Ejecuta `php artisan config:clear`. |
+| Faltan tablas de roles o la columna `username` | Ejecuta `php artisan migrate` en `backend`. |
+| Faltan roles o el administrador inicial | Ejecuta `php artisan db:seed`; considera la nota sobre restablecer los permisos iniciales. |
+| React no conecta con Laravel | Verifica el backend en `127.0.0.1:8000` y las URLs de `frontend/src/services/`. |
+| Respuesta `401` | Inicia sesión nuevamente. |
+| Respuesta `403` o pantalla de espera | Un administrador debe asignar el acceso necesario desde **Usuarios**. |
+| Los permisos no se actualizan | Ejecuta `php artisan permission:cache-reset` y vuelve a iniciar sesión o pulsa **Comprobar aprobación**. |
+| Vite falla por la versión de Node.js | Revisa `node -v` y los requisitos de este README. |
 
 ---
 
-## POST con Postman
-
-Método:
-
-```text
-POST
-```
-
-Endpoint:
-
-```text
-http://127.0.0.1:8000/api/peliculas
-```
-
-Headers:
-
-```text
-Accept: application/json
-Content-Type: application/json
-```
-
-Ejemplo de Body JSON:
-
-```json
-{
-  "titulo": "Interstellar",
-  "sinopsis": "Un grupo de exploradores viaja a través del espacio en busca de un nuevo hogar para la humanidad.",
-  "genero": "Ciencia ficción",
-  "duracion": 169,
-  "clasificacion": "PG-13",
-  "activo": true
-}
-```
-
-Si el registro es válido, Laravel responde con:
-
-```text
-201 Created
-```
-
----
-
-# 🔒 Validación
-
-La validación se realiza en el backend mediante Laravel.
-
-Por ejemplo:
-
-```php
-'titulo' => ['required', 'string', 'max:150'],
-'genero' => ['required', 'string', 'max:80'],
-'duracion' => ['required', 'integer', 'min:1'],
-'clasificacion' => ['required', 'string', 'max:30'],
-'activo' => ['required', 'boolean'],
-```
-
-Si Laravel recibe información inválida, responde normalmente con:
-
-```text
-422 Unprocessable Content
-```
-
-React procesa esta respuesta y muestra los errores correspondientes al usuario.
-
----
-
-# 🔄 Flujo de datos
-
-Cuando el usuario registra una película:
-
-```text
-1. Usuario completa el formulario
-               ↓
-2. React almacena los valores en el estado
-               ↓
-3. Fetch envía un POST con JSON
-               ↓
-4. Laravel recibe /api/peliculas
-               ↓
-5. PeliculaController valida la información
-               ↓
-6. Modelo Pelicula utiliza Eloquent
-               ↓
-7. MySQL almacena el registro
-               ↓
-8. Laravel devuelve JSON
-               ↓
-9. React vuelve a consultar la API
-               ↓
-10. El catálogo se actualiza
-```
-
----
-
-# 📌 Estado actual
-
-Actualmente CineNow cuenta con su **primer módulo funcional: Películas**.
-
-El objetivo del proyecto en esta etapa no es desarrollar un sistema completo de cine, sino demostrar correctamente la integración:
-
-```text
-React ↔ Laravel ↔ MySQL
-```
-
-Futuras versiones podrían incorporar nuevos módulos como funciones, salas, reservas o boletos.
-
----
-
-## 👨‍💻 Autor
+<div align="center">
 
 **David Sandoval Marenco**
 
-Proyecto académico desarrollado para:
+Proyecto académico · **Electiva PPF II**
 
-**Electiva PPF II**
+Desarrollado con React, Laravel y MySQL.
 
----
-
-## 📄 Licencia
-
-Proyecto desarrollado con fines educativos.
+</div>
