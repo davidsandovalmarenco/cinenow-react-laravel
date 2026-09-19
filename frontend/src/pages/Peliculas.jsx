@@ -24,6 +24,7 @@ export default function Peliculas() {
   const location = useLocation();
   const { user, roles, logout, hasPermission } = useAuth();
   const [peliculas, setPeliculas] = useState([]);
+  const [busqueda, setBusqueda] = useState('');
   const [form, setForm] = useState(formularioInicial);
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
@@ -101,7 +102,7 @@ export default function Peliculas() {
     setForm({
       titulo: pelicula.titulo,
       sinopsis: pelicula.sinopsis || '',
-      genero: pelicula.genero,
+      genero: pelicula.genero?.nombre || pelicula.genero || '',
       duracion: pelicula.duracion,
       clasificacion: pelicula.clasificacion,
       activo: pelicula.activo,
@@ -129,6 +130,10 @@ export default function Peliculas() {
       else alert('Error al eliminar: ' + error.message);
     }
   }
+
+  const peliculasFiltradas = peliculas.filter((pelicula) =>
+    pelicula.titulo.toLowerCase().includes(busqueda.toLowerCase())
+  );
 
   const activas = peliculas.filter(
     (pelicula) => pelicula.activo
@@ -530,10 +535,21 @@ export default function Peliculas() {
               </p>
 
               <span>
-                {peliculas.length}
+                {peliculasFiltradas.length}
                 {' '}
-                registros
+                {peliculasFiltradas.length === 1 ? 'registro' : 'registros'}
               </span>
+            </div>
+
+            <div className="search-bar" style={{ marginBottom: '16px' }}>
+              <div className="field">
+                <input
+                  type="text"
+                  value={busqueda}
+                  onChange={(e) => setBusqueda(e.target.value)}
+                  placeholder="🔍 Buscar película por título..."
+                />
+              </div>
             </div>
 
             {cargando ? (
@@ -559,9 +575,19 @@ export default function Peliculas() {
                   el formulario.
                 </p>
               </div>
+            ) : peliculasFiltradas.length === 0 ? (
+              <div className="state">
+                <strong>
+                  Sin coincidencias
+                </strong>
+
+                <p>
+                  No se encontraron películas que coincidan con &quot;{busqueda}&quot;.
+                </p>
+              </div>
             ) : (
               <div className="movie-list">
-                {peliculas.map((pelicula) => (
+                {peliculasFiltradas.map((pelicula) => (
                   <article
                     className="movie"
                     key={pelicula.id}
@@ -576,7 +602,7 @@ export default function Peliculas() {
                       <div className="movie-top">
                         <div>
                           <span className="genre">
-                            {pelicula.genero}
+                            {pelicula.genero?.nombre || pelicula.genero}
                           </span>
 
                           <h3>
