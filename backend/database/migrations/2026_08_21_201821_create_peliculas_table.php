@@ -15,7 +15,7 @@ return new class extends Migration
         $table->id();
         $table->string('titulo', 150);
         $table->text('sinopsis')->nullable();
-        $table->string('genero', 80);
+        $table->foreignId('genero_id')->constrained('generos');
         $table->unsignedInteger('duracion');
         $table->string('clasificacion', 30);
         $table->boolean('activo')->default(true);
