@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
+import { useNavigate, useLocation } from 'react-router';
 import { listarUsuarios, asignarRoles } from '../services/usersApi';
 import { listarRoles } from '../services/rolesApi';
 import { useAuth } from '../context/AuthContext';
 import './Peliculas.css';
 
-export default function Usuarios({ cambiarPagina }) {
+export default function Usuarios() {
+  const navigate = useNavigate();
+  const location = useLocation();
   const { user, roles: userRoles, logout, hasPermission } = useAuth();
   const [usuarios, setUsuarios] = useState([]);
   const [rolesList, setRolesList] = useState([]);
@@ -85,18 +88,18 @@ export default function Usuarios({ cambiarPagina }) {
           </div>
           <p className="nav-title">GENERAL</p>
           <nav>
-            <button className="nav-item" onClick={() => cambiarPagina?.('peliculas')}>
+            <button className={`nav-item ${location.pathname === '/peliculas' ? 'active' : ''}`} onClick={() => navigate('/peliculas')}>
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5v-13Z"/><path d="M8 8h8M8 12h8M8 16h5" /></svg>
               Películas
             </button>
             {hasPermission('roles.ver') && (
-              <button className="nav-item" onClick={() => cambiarPagina?.('roles')}>
+              <button className={`nav-item ${location.pathname === '/roles' ? 'active' : ''}`} onClick={() => navigate('/roles')}>
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
                 Roles y permisos
               </button>
             )}
             {userRoles.includes('Administrador') && (
-              <button className="nav-item active" onClick={() => cambiarPagina?.('usuarios')}>
+              <button className={`nav-item ${location.pathname === '/usuarios' ? 'active' : ''}`} onClick={() => navigate('/usuarios')}>
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                 Usuarios
               </button>

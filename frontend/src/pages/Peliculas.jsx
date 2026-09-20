@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate, useLocation } from 'react-router';
 import {
   crearPelicula,
   listarPeliculas,
@@ -18,7 +19,9 @@ const formularioInicial = {
   activo: true,
 };
 
-export default function Peliculas({ cambiarPagina }) {
+export default function Peliculas() {
+  const navigate = useNavigate();
+  const location = useLocation();
   const { user, roles, logout, hasPermission } = useAuth();
   const [peliculas, setPeliculas] = useState([]);
   const [form, setForm] = useState(formularioInicial);
@@ -150,7 +153,7 @@ export default function Peliculas({ cambiarPagina }) {
           </p>
 
           <nav>
-            <button className="nav-item active" onClick={() => cambiarPagina?.('peliculas')}>
+            <button className={`nav-item ${location.pathname === '/peliculas' ? 'active' : ''}`} onClick={() => navigate('/peliculas')}>
               <svg
                 viewBox="0 0 24 24"
                 aria-hidden="true"
@@ -169,7 +172,7 @@ export default function Peliculas({ cambiarPagina }) {
             </button>
 
             {hasPermission('roles.ver') && (
-              <button className="nav-item" onClick={() => cambiarPagina?.('roles')}>
+              <button className={`nav-item ${location.pathname === '/roles' ? 'active' : ''}`} onClick={() => navigate('/roles')}>
                 <svg
                   viewBox="0 0 24 24"
                   aria-hidden="true"
@@ -182,7 +185,7 @@ export default function Peliculas({ cambiarPagina }) {
             )}
 
             {roles.includes('Administrador') && (
-              <button className="nav-item" onClick={() => cambiarPagina?.('usuarios')}>
+              <button className={`nav-item ${location.pathname === '/usuarios' ? 'active' : ''}`} onClick={() => navigate('/usuarios')}>
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                 Usuarios
               </button>

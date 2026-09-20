@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate, useLocation } from 'react-router';
 import {
   listarRoles,
   listarPermisos,
@@ -15,7 +16,9 @@ const formularioInicial = {
   permissions: [],
 };
 
-export default function RolesPermisos({ cambiarPagina }) {
+export default function RolesPermisos() {
+  const navigate = useNavigate();
+  const location = useLocation();
   const { user, roles: userRoles, logout, hasPermission } = useAuth();
   const [roles, setRoles] = useState([]);
   const [permisos, setPermisos] = useState([]);
@@ -147,7 +150,7 @@ export default function RolesPermisos({ cambiarPagina }) {
           </p>
 
           <nav>
-            <button className="nav-item" onClick={() => cambiarPagina?.('peliculas')}>
+            <button className={`nav-item ${location.pathname === '/peliculas' ? 'active' : ''}`} onClick={() => navigate('/peliculas')}>
               <svg
                 viewBox="0 0 24 24"
                 aria-hidden="true"
@@ -162,7 +165,7 @@ export default function RolesPermisos({ cambiarPagina }) {
             </button>
 
             {hasPermission('roles.ver') && (
-              <button className="nav-item active" onClick={() => cambiarPagina?.('roles')}>
+              <button className={`nav-item ${location.pathname === '/roles' ? 'active' : ''}`} onClick={() => navigate('/roles')}>
                 <svg
                   viewBox="0 0 24 24"
                   aria-hidden="true"
@@ -179,7 +182,7 @@ export default function RolesPermisos({ cambiarPagina }) {
             )}
 
             {userRoles.includes('Administrador') && (
-              <button className="nav-item" onClick={() => cambiarPagina?.('usuarios')}>
+              <button className={`nav-item ${location.pathname === '/usuarios' ? 'active' : ''}`} onClick={() => navigate('/usuarios')}>
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                 Usuarios
               </button>
