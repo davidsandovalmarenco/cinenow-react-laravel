@@ -3,18 +3,19 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Genero;
 use App\Models\Pelicula;
 use Illuminate\Http\Request;
 
 class PeliculaController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Display a listing of the resource with eager loading.
      */
     public function index()
     {
         return response()->json(
-            Pelicula::orderByDesc('id')->get()
+            Pelicula::with('genero')->orderByDesc('id')->get()
         );
     }
 
@@ -32,7 +33,13 @@ class PeliculaController extends Controller
             'activo' => ['required', 'boolean'],
         ]);
 
+        $generoObj = Genero::firstOrCreate(['nombre' => $datos['genero']]);
+
+        unset($datos['genero']);
+        $datos['genero_id'] = $generoObj->id;
+
         $pelicula = Pelicula::create($datos);
+        $pelicula->load('genero');
 
         return response()->json($pelicula, 201);
     }
@@ -42,13 +49,13 @@ class PeliculaController extends Controller
      */
     public function show(Pelicula $pelicula)
     {
-        return response()->json($pelicula);
+        return response()->json($pelicula->load('genero'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-     public function update(Request $request, Pelicula $pelicula)
+    public function update(Request $request, Pelicula $pelicula)
     {
         $datos = $request->validate([
             'titulo' => ['required', 'string', 'max:150'],
@@ -59,7 +66,13 @@ class PeliculaController extends Controller
             'activo' => ['required', 'boolean'],
         ]);
 
+        $generoObj = Genero::firstOrCreate(['nombre' => $datos['genero']]);
+
+        unset($datos['genero']);
+        $datos['genero_id'] = $generoObj->id;
+
         $pelicula->update($datos);
+        $pelicula->load('genero');
 
         return response()->json($pelicula);
     }
